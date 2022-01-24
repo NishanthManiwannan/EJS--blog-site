@@ -1,0 +1,20 @@
+<%- include("partials/header") -%>
+<h1>Home</h1>
+<p><%= startingContant%></p>
+
+<!-- Used for loop -->
+<!-- <% for(var i = 0; i < blogLength; i++) { %>
+    <h3><%= blogData[i].blogTitle %></h3>
+    <p><%= blogData[i].blogPost %></p>
+    <hr>
+<% } %>  -->
+
+<% blogData.forEach(function (data){ %>
+<h3 style="font-weight: 700"><%= data.blogTitle %></h3>
+<p class="blogTExt"><%= data.blogPost.substring(0,200) + " ...." %></p>
+<a
+  style="cursor: pointer; text-decoration: none"
+  href="/posts/<%= data.blogTitle %>"
+  >Read more..</a
+>
+<%});%> <%- include("partials/footer") -%>

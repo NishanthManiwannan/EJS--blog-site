@@ -10,11 +10,13 @@
 <% } %>  -->
 
 <% blogData.forEach(function (data){ %>
-<h3 style="font-weight: 700"><%= data.blogTitle %></h3>
-<p class="blogTExt"><%= data.blogPost.substring(0,200) + " ...." %></p>
-<a
-  style="cursor: pointer; text-decoration: none"
-  href="/posts/<%= data.blogTitle %>"
-  >Read more..</a
->
+<div class="blogrow">
+  <h3 style="font-weight: 700"><%= data.blogTitle %></h3>
+  <p class="blogTExt"><%= data.blogPost.substring(0,200) + " ...." %></p>
+  <a
+    style="cursor: pointer; text-decoration: none"
+    href="/posts/<%= data.blogTitle %>"
+    >Read more..</a
+  >
+</div>
 <%});%> <%- include("partials/footer") -%>

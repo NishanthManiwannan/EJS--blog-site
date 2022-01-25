@@ -46,3 +46,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
 } */
+
+.blogrow{
+ border-left:6px solid;
+ border-color: #1abc9c;
+ margin-bottom: 10px;
+ padding-left: 15px;
+}

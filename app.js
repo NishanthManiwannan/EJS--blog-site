@@ -1,9 +1,12 @@
 //jshint esversion:6
 
-const express = require("express");
-const bodyParser = require("body-parser");
-const ejs = require("ejs");
+const express = require("express"),
+  bodyParser = require("body-parser"),
+  ejs = require("ejs");
+
 const _ = require("lodash");
+
+// const multer = require("multer");
 
 const homeStartingContent =
   "Lacus vel facilisis volutpat est velit egestas dui id ornare. Semper auctor neque vitae tempus quam. Sit amet cursus sit amet dictum sit amet justo. Viverra tellus in hac habitasse. Imperdiet proin fermentum leo vel orci porta. Donec ultrices tincidunt arcu non sodales neque sodales ut. Mattis molestie a iaculis at erat pellentesque adipiscing. Magnis dis parturient montes nascetur ridiculus mus mauris vitae ultricies. Adipiscing elit ut aliquam purus sit amet luctus venenatis lectus. Ultrices vitae auctor eu augue ut lectus arcu bibendum at. Odio euismod lacinia at quis risus sed vulputate odio ut. Cursus mattis molestie a iaculis at erat pellentesque adipiscing.";
@@ -19,15 +22,79 @@ app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-//array for save the blogs
-var blogArray = [];
+//----------------------------------------------------------------------
+//------------------- Connecting to mongo -----------------------------
+//---------------------------------------------------------------------
+const mongoos = require("mongoose");
+mongoos.connect(
+  "url/Blog",
+  {
+    useNewUrlParser: true,
+  }
+);
 
-//routes rendering
+//----------------------- image upload --------------------
+
+//set disk storage for save img
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cd(null, "./uploads/");
+//   },
+//   filename: function (req, file, cd) {
+//     cd(null, new Date().toISOString() + file.originalname);
+//   },
+// });
+
+// const fileFilter = (req, file, cb) => {
+//   if (
+//     file.mimetype === "image/jpeg" ||
+//     file.mimetype === "image/png" ||
+//     file.mimetype === "image/jpg"
+//   ) {
+//     cb(null, true);
+//   } else {
+//     cb(null, false);
+//   }
+// };
+
+// const upload = multer({
+//   storage: storage,
+//   limits: {
+//     fileSize: 1024 * 1024 * 5,
+//   },
+//   fileFilter: fileFilter,
+// });
+
+//------------------------------ mongo object schema ---------------------------------------
+const blogListSchema = new mongoos.Schema({
+  title: {
+    type: String,
+    required: [true, "Title required"],
+  },
+  // imgURL: {
+  //   type: String,
+  //   required: true,
+  // },
+  description: {
+    type: String,
+    require: [true, "Discription required"],
+  },
+});
+
+//---------------- create mongo collection -------------------------
+const blogList = mongoos.model("posts", blogListSchema);
+
 app.get("/", function (req, res) {
-  res.render("home", {
-    startingContant: homeStartingContent,
-    blogData: blogArray,
-    blogLength: blogArray.length,
+  blogList.find({}, function (err, blogList) {
+    if (err) {
+      console.log(err);
+    } else {
+      res.render("home", {
+        startingContant: homeStartingContent,
+        blogData: blogList,
+        blogLength: blogList.length,
+      });
+    }
   });
 });
 
@@ -43,36 +110,90 @@ app.get("/compose", function (req, res) {
   res.render("compose", { startingContant: aboutContent });
 });
 
-app.get("/posts/:postName", function (req, res) {
-  const requiredTitle = _.lowerCase(req.params.postName);
+app.post("/compose", function (req, res) {
+  const bolgObject = new blogList({
+    title: req.body.titleField,
+    //imgURL: req.file.path,
+    description: req.body.postField,
+  });
 
-  blogArray.forEach(function (data) {
-    const arrayTitleSaved = _.lowerCase(data.blogTitle);
+  bolgObject.save();
+  res.redirect("/");
+});
 
-    if (arrayTitleSaved === requiredTitle) {
-      res.render("post", {
-        postTitle: data.blogTitle,
-        postBlog: data.blogPost,
-      });
+app.get("/posts/:postId", function (req, res) {
+  const requiredId = req.params.postId;
+
+  blogList.findById(requiredId, function (err, blogData) {
+    if (err) {
+      console.log(err);
     } else {
-      console.log("fail");
+      res.render("post", {
+        // imgFile: blogData.imgFile,
+        postTitle: blogData.title,
+        postBlog: blogData.description,
+      });
     }
   });
 });
 
-//post requestes
-app.post("/compose", function (req, res) {
-  var bolgObject = {
-    blogTitle: req.body.titleField,
-    blogPost: req.body.postField,
-  };
+//=============================== without mongo db ============================
+//array for save the blogs
+// var blogArray = [];
 
-  blogArray.push(bolgObject);
-  res.redirect("/");
-});
+//routes rendering
+// app.get("/", function (req, res) {
+//   res.render("home", {
+//     startingContant: homeStartingContent,
+//     blogData: blogArray,
+//     blogLength: blogArray.length,
+//   });
+// });
+
+// app.get("/contact", function (req, res) {
+//   res.render("contact", { startingContant: contactContent });
+// });
+
+// app.get("/about", function (req, res) {
+//   res.render("about", { startingContant: aboutContent });
+// });
+
+// app.get("/compose", function (req, res) {
+//   res.render("compose", { startingContant: aboutContent });
+// });
+
+// app.get("/posts/:postName", function (req, res) {
+//   const requiredTitle = _.lowerCase(req.params.postName);
+
+//   blogArray.forEach(function (data) {
+//     const arrayTitleSaved = _.lowerCase(data.blogTitle);
+
+//     if (arrayTitleSaved === requiredTitle) {
+//       res.render("post", {
+//         imgFile: data.imgFile,
+//         postTitle: data.blogTitle,
+//         postBlog: data.blogPost,
+//       });
+//     } else {
+//       console.log("fail");
+//     }
+//   });
+// });
+
+//post requestes
+// app.post("/compose", function (req, res) {
+//   var bolgObject = {
+//     blogTitle: req.body.titleField,
+//     blogPost: req.body.postField,
+//     imgFile: req.body.img,
+//   };
+
+//   console.log(bolgObject);
+//   blogArray.push(bolgObject);
+//   res.redirect("/");
+// });
 
 //host server
 app.listen(3000, function () {
   console.log("Server started on port 3000");
 });
-

@@ -6,7 +6,9 @@ const express = require("express"),
 
 const _ = require("lodash");
 
-// const multer = require("multer");
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
 
 const homeStartingContent =
   "Lacus vel facilisis volutpat est velit egestas dui id ornare. Semper auctor neque vitae tempus quam. Sit amet cursus sit amet dictum sit amet justo. Viverra tellus in hac habitasse. Imperdiet proin fermentum leo vel orci porta. Donec ultrices tincidunt arcu non sodales neque sodales ut. Mattis molestie a iaculis at erat pellentesque adipiscing. Magnis dis parturient montes nascetur ridiculus mus mauris vitae ultricies. Adipiscing elit ut aliquam purus sit amet luctus venenatis lectus. Ultrices vitae auctor eu augue ut lectus arcu bibendum at. Odio euismod lacinia at quis risus sed vulputate odio ut. Cursus mattis molestie a iaculis at erat pellentesque adipiscing.";
@@ -27,7 +29,7 @@ app.use(express.static("public"));
 //---------------------------------------------------------------------
 const mongoos = require("mongoose");
 mongoos.connect(
-  "url/Blog",
+  "mongodb+srv://ManiNishanth:Gaps01MDB@blog.ymaer.mongodb.net/Blog",
   {
     useNewUrlParser: true,
   }
@@ -35,54 +37,103 @@ mongoos.connect(
 
 //----------------------- image upload --------------------
 
-//set disk storage for save img
-// const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cd(null, "./uploads/");
-//   },
-//   filename: function (req, file, cd) {
-//     cd(null, new Date().toISOString() + file.originalname);
-//   },
-// });
-
-// const fileFilter = (req, file, cb) => {
-//   if (
-//     file.mimetype === "image/jpeg" ||
-//     file.mimetype === "image/png" ||
-//     file.mimetype === "image/jpg"
-//   ) {
-//     cb(null, true);
-//   } else {
-//     cb(null, false);
-//   }
-// };
-
-// const upload = multer({
-//   storage: storage,
-//   limits: {
-//     fileSize: 1024 * 1024 * 5,
-//   },
-//   fileFilter: fileFilter,
-// });
-
-//------------------------------ mongo object schema ---------------------------------------
-const blogListSchema = new mongoos.Schema({
-  title: {
-    type: String,
-    required: [true, "Title required"],
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./public/uploads/");
   },
-  // imgURL: {
-  //   type: String,
-  //   required: true,
-  // },
-  description: {
-    type: String,
-    require: [true, "Discription required"],
+  filename: function (req, file, cb) {
+    cb(
+      null,
+      new Date().toISOString().replace(/:/g, "-") + "-" + file.originalname
+    );
   },
 });
 
+const fileFilter = (req, file, cd) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
+    cd(null, true);
+  } else {
+    cd(null, false);
+  }
+};
+
+const upload = multer({ storage: storage, fileFilter: fileFilter });
+
+const singleFileUpload = async (req, res, next) => {
+  try {
+    const fileSlice = req.file.path;
+    const file = new blogList({
+      title: req.body.titleField,
+      description: req.body.postField,
+      filename: req.file.originalname,
+      filePath: fileSlice.slice(7),
+      fileType: req.file.mimetype,
+      fileSize: fileSizeFormatter(req.file.size, 2), //0.00
+    });
+
+    file.save();
+    res.redirect("/");
+    console.log(file);
+
+    res.status(201).send("file upload succeess");
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
+};
+
+const fileSizeFormatter = (bytes, decimal) => {
+  if (bytes === 0) {
+    return "0 Bytes";
+  } else {
+    const dm = decimal || 2;
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "YB", "ZB"];
+    const index = Math.floor(Math.log(bytes) / Math.log(1000));
+    return (
+      parseFloat((bytes / Math.pow(1000, index)).toFixed(dm)) +
+      "-" +
+      sizes[index]
+    );
+  }
+};
+//------------------------------ mongo object schema ---------------------------------------
+const blogListSchema = new mongoos.Schema(
+  {
+    title: {
+      type: String,
+      required: [true, "Title required"],
+    },
+    description: {
+      type: String,
+      require: [true, "Discription required"],
+    },
+    filename: {
+      type: String,
+      required: true,
+    },
+    filePath: {
+      type: String,
+      required: true,
+    },
+    fileType: {
+      type: String,
+      required: true,
+    },
+    fileSize: {
+      type: String,
+      required: true,
+    },
+  },
+  { timestamps: true }
+);
+
 //---------------- create mongo collection -------------------------
 const blogList = mongoos.model("posts", blogListSchema);
+
+app.post("/compose", upload.single("imges"), singleFileUpload);
 
 app.get("/", function (req, res) {
   blogList.find({}, function (err, blogList) {
@@ -91,6 +142,7 @@ app.get("/", function (req, res) {
     } else {
       res.render("home", {
         startingContant: homeStartingContent,
+        filepath: blogList,
         blogData: blogList,
         blogLength: blogList.length,
       });
@@ -108,17 +160,6 @@ app.get("/about", function (req, res) {
 
 app.get("/compose", function (req, res) {
   res.render("compose", { startingContant: aboutContent });
-});
-
-app.post("/compose", function (req, res) {
-  const bolgObject = new blogList({
-    title: req.body.titleField,
-    //imgURL: req.file.path,
-    description: req.body.postField,
-  });
-
-  bolgObject.save();
-  res.redirect("/");
 });
 
 app.get("/posts/:postId", function (req, res) {

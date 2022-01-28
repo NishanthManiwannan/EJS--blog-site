@@ -1,7 +1,7 @@
 <%- include("partials/header") -%>
 <h1>Compose</h1>
 
-<form action="/compose" method="post">
+<form action="/compose" method="post" enctype="multipart/form-data">
   <div class="mb-3">
     <label class="form-label" for="titleField">Title</label>
     <input
@@ -12,8 +12,7 @@
       id="titleField"
     />
 
-    <input type="file" id="img" name="img" accept="image/*">
-
+    <input type="file" id="img" name="imges" accept="image/*" multiple />
 
     <label class="form-label" for="postField">Post</label>
     <textarea

@@ -13,9 +13,27 @@
 
 <div class="col-lg-3 col-sm-6">
   <div class="blogrow">
-    <img style="width: 50px; height: 50px;" src="uploads/2022-01-28T09-59-33.604Z-download.jpg" alt="">
-    <h3 style="font-weight: 700"><%= data.title %></h3>
-    <p class="blogTExt"><%= data.description.substring(0,200) + " ...." %></p>
+    <img
+      class="image"
+      style="width: 100%; height: 150px"
+      src="<%= data.filePath %>"
+      alt=""
+    />
+    <h3
+      style="
+        font-weight: 700;
+        position: absolute;
+        top: 110px;
+        background-color: rgb(221, 224, 226);
+        padding: 2px;
+        width: 80.5%;
+        opacity: 0.8
+
+      "
+    >
+      <%= data.title %>
+    </h3>
+    <p class="blogTExt"><%= data.description.substring(0,120) + " ...." %></p>
     <a
       style="cursor: pointer; text-decoration: none"
       href="/posts/<%= data.id %>"

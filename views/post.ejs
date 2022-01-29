@@ -1,6 +1,15 @@
 <%- include("partials/header") -%>
 <h1>Post View</h1>
-<h3><%= postTitle %></h3>
-<p><%= postBlog %></p>
+
+<div class="col-lg-6" >
+  <img class="image" src="../<%= imgFile %> " alt="" />
+  
+</div>
+
+<div class="col-lg-6" >
+  <h3><%= postTitle %></h3>
+  <p><%= postBlog %></p>
+</div>
+
 <button class="backButton"><a href="/">Back</a></button>
-<%- include("partials/footer") -%>
+

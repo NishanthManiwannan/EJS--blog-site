@@ -5,10 +5,7 @@ const express = require("express"),
   ejs = require("ejs");
 
 const _ = require("lodash");
-
 const multer = require("multer");
-const fs = require("fs");
-const path = require("path");
 
 const homeStartingContent =
   "Lacus vel facilisis volutpat est velit egestas dui id ornare. Semper auctor neque vitae tempus quam. Sit amet cursus sit amet dictum sit amet justo. Viverra tellus in hac habitasse. Imperdiet proin fermentum leo vel orci porta. Donec ultrices tincidunt arcu non sodales neque sodales ut. Mattis molestie a iaculis at erat pellentesque adipiscing. Magnis dis parturient montes nascetur ridiculus mus mauris vitae ultricies. Adipiscing elit ut aliquam purus sit amet luctus venenatis lectus. Ultrices vitae auctor eu augue ut lectus arcu bibendum at. Odio euismod lacinia at quis risus sed vulputate odio ut. Cursus mattis molestie a iaculis at erat pellentesque adipiscing.";
@@ -35,8 +32,11 @@ mongoos.connect(
   }
 );
 
-//----------------------- image upload --------------------
+//=========================================================
+//=================== image upload ========================
+//=========================================================
 
+//----------------------- initializing folder space ---------------------------
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "./public/uploads/");
@@ -49,6 +49,7 @@ const storage = multer.diskStorage({
   },
 });
 
+//------------------- file formate --------------------------------------
 const fileFilter = (req, file, cd) => {
   if (
     file.mimetype === "image/png" ||
@@ -63,6 +64,7 @@ const fileFilter = (req, file, cd) => {
 
 const upload = multer({ storage: storage, fileFilter: fileFilter });
 
+//---------------------- object initialization ---------------------------
 const singleFileUpload = async (req, res, next) => {
   try {
     const fileSlice = req.file.path;
@@ -77,7 +79,6 @@ const singleFileUpload = async (req, res, next) => {
 
     file.save();
     res.redirect("/");
-    console.log(file);
 
     res.status(201).send("file upload succeess");
   } catch (error) {
@@ -85,6 +86,7 @@ const singleFileUpload = async (req, res, next) => {
   }
 };
 
+//------------------------- file size formatter -------------------------
 const fileSizeFormatter = (bytes, decimal) => {
   if (bytes === 0) {
     return "0 Bytes";
@@ -99,6 +101,7 @@ const fileSizeFormatter = (bytes, decimal) => {
     );
   }
 };
+
 //------------------------------ mongo object schema ---------------------------------------
 const blogListSchema = new mongoos.Schema(
   {
@@ -150,6 +153,23 @@ app.get("/", function (req, res) {
   });
 });
 
+app.get("/posts/:postId", function (req, res) {
+  const requiredId = req.params.postId;
+
+  blogList.findById(requiredId, function (err, blogData) {
+    if (err) {
+      console.log(err);
+    } else {
+      res.render("post", {
+        imgFile: blogData.filePath,
+        postTitle: blogData.title,
+        postBlog: blogData.description,
+      });
+    }
+  });
+});
+
+//-------------------------- nav routes ---------------------------
 app.get("/contact", function (req, res) {
   res.render("contact", { startingContant: contactContent });
 });
@@ -160,22 +180,6 @@ app.get("/about", function (req, res) {
 
 app.get("/compose", function (req, res) {
   res.render("compose", { startingContant: aboutContent });
-});
-
-app.get("/posts/:postId", function (req, res) {
-  const requiredId = req.params.postId;
-
-  blogList.findById(requiredId, function (err, blogData) {
-    if (err) {
-      console.log(err);
-    } else {
-      res.render("post", {
-        // imgFile: blogData.imgFile,
-        postTitle: blogData.title,
-        postBlog: blogData.description,
-      });
-    }
-  });
 });
 
 //=============================== without mongo db ============================

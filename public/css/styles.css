@@ -47,11 +47,18 @@
   text-overflow: ellipsis;
 } */
 
+.blogTExt {
+  color: rgb(128, 126, 126);
+}
+
 .blogrow {
   border-left: 6px solid;
   border-color: #1abc9c;
-  margin-bottom: 10px;
-  padding-left: 15px;
+  padding: 10px 10px 19px 10px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+  -webkit-box-shadow: 5px 5px 18px 5px rgba(204, 204, 204, 0.91);
+  box-shadow: 5px 5px 18px 5px rgba(204, 204, 204, 0.91);
 }
 
 .backButton {
@@ -66,5 +73,8 @@
 .backButton a {
   color: white;
   text-decoration: none;
+}
 
+.image {
+  width: 90%;
 }
